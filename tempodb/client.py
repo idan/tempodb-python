@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # encoding: utf-8
 """
@@ -12,11 +11,13 @@ import requests
 import simplejson
 import urllib
 import urllib2
-
+import re
 
 API_HOST = 'api.tempo-db.com'
 API_PORT = 443
 API_VERSION = 'v1'
+
+RE_INVALID_SERIES_KEY = re.compile('[^\w-]')
 
 
 class Database(object):
@@ -140,7 +141,10 @@ class Client(object):
     def create_series(self, key=None):
         params = {}
         if key is not None:
+            if RE_INVALID_SERIES_KEY.findall(key):
+                raise ValueError('Series key must contain only alphanumeric characters, hyphens, and underscores.')
             params['key'] = key
+            
 
         json = self.request('/series/', method='POST', params=params)
         series = Series.from_json(json)
